@@ -1,0 +1,71 @@
+name: Deploy GDG Hub
+
+on:
+  schedule:
+    # Run nightly at 04:00 UTC
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      great_docs_ref:
+        description: "great-docs branch/tag/SHA to build from"
+        required: false
+        default: "main"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only allow one deployment at a time; cancel any in-flight run
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout gdg repo
+        uses: actions/checkout@v4
+
+      - name: Checkout great-docs
+        uses: actions/checkout@v4
+        with:
+          repository: rich-iannone/great-docs
+          ref: ${{ github.event.inputs.great_docs_ref || 'main' }}
+          path: great-docs
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.8.26"
+
+      - name: Install great-docs
+        working-directory: great-docs
+        run: pip install -e .
+
+      - name: Build GDG hub
+        working-directory: great-docs
+        run: python test-packages/render_all.py --build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: great-docs/test-packages/_rendered/_hub
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
