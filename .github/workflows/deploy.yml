@@ -32,7 +32,7 @@ jobs:
       - name: Checkout great-docs
         uses: actions/checkout@v4
         with:
-          repository: rich-iannone/great-docs
+          repository: posit-dev/great-docs
           ref: ${{ github.event.inputs.great_docs_ref || 'main' }}
           path: great-docs
 
