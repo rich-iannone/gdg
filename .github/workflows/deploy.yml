@@ -48,7 +48,7 @@ jobs:
 
       - name: Install great-docs
         working-directory: great-docs
-        run: pip install -e .
+        run: pip install -e ".[dev]"
 
       - name: Build GDG hub
         working-directory: great-docs
