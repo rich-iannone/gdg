@@ -52,7 +52,7 @@ jobs:
 
       - name: Build GDG hub
         working-directory: great-docs
-        run: python test-packages/render_all.py --build
+        run: python test-packages/render_all.py --build --workers 4
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
